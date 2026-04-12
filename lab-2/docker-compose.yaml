@@ -1,0 +1,35 @@
+services:
+  postgres-service:
+    image: postgres:17-alpine
+    env_file: .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend-service:
+    build: ./backend
+    env_file: .env
+    environment:
+      - DB_HOST=postgres-service
+    volumes:
+      - static_files:/app/staticfiles
+    depends_on:
+      postgres-service:
+        condition: service_healthy
+
+  nginx-service:
+    build: ./nginx
+    ports:
+      - "80:80"
+    volumes:
+      - static_files:/static
+    depends_on:
+      - backend-service
+
+volumes:
+  postgres_data:
+  static_files:
