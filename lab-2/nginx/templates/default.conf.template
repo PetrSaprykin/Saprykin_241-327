@@ -1,11 +1,16 @@
 server {
     listen 80;
     server_name _;
+    return 301 https://$host$request_uri;
+}
 
-    include /etc/nginx/mime.types;
-    sendfile on;
-    charset utf8;
-    autoindex off;
+server {
+    listen 443 ssl;
+    server_name _;
+
+    ssl_certificate     /etc/nginx/ssl/lab2.crt;
+    ssl_certificate_key /etc/nginx/ssl/lab2.key;
+
 
     location = /favicon.ico { access_log off; log_not_found off; }
 

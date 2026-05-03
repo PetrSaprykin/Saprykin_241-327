@@ -20,15 +20,29 @@ services:
     depends_on:
       postgres-service:
         condition: service_healthy
+      migrate-service:
+        condition: service_completed_successfully
 
   nginx-service:
     build: ./nginx
     ports:
       - "80:80"
+      - "443:443"
     volumes:
       - static_files:/static
     depends_on:
       - backend-service
+  migrate-service:
+    build: ./backend
+    env_file: .env
+    environment:
+      - DB_HOST=postgres-service
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py collectstatic --noinput"
+    depends_on:
+      postgres-service:
+        condition: service_healthy
 
 volumes:
   postgres_data:
